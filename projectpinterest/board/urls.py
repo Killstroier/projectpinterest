@@ -11,6 +11,5 @@ urlpatterns = [
     path('photo/<int:photo_id>/', views.photo_detail, name='photo_detail'),
     path('create/', views.photo_create, name='photo_create'),
     path('redirect/', views.redirect_example, name='redirect_example'),
-    path('', views.index, name='home')
-    path('/about', views.about, name='about')
+    path('about/', views.about, name='about')
 ]
