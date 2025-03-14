@@ -1,0 +1,10 @@
+<ul class="list-group">
+    <li class="list-group-item {% if cat_selected == 0 %}active{% endif %}">
+        <a href="{% url 'home' %}">Все категории</a>
+    </li>
+    {% for cat in categories %}
+        <li class="list-group-item {% if cat.id == cat_selected %}active{% endif %}">
+            <a href="{% url 'home' %}?cat={{ cat.id }}">{{ cat.name }}</a>
+        </li>
+    {% endfor %}
+</ul>

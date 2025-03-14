@@ -16,10 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from board import views
+from board import views as board_views
 
+handler404 = 'board.views.page_not_found'
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.home, name='home'),
-    path('', include('board.urls')),
+    path('', board_views.home, name='home'),  # Домашняя страница
+    path('', include('board.urls')),  # Подключение маршрутов приложения board
 ]

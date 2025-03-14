@@ -1,0 +1,20 @@
+{% extends 'board/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title|capfirst }}</h1>
+<ul>
+    {% for post in posts %}
+        {% if post.is_published %}
+            <li>
+                <h2>{{ post.title }}</h2>
+                <p>{% autoescape off %}{{ post.content|linebreaks|truncatewords:50 }}{% endautoescape %}</p>
+            </li>
+            {% if not forloop.last %}
+                <hr>
+            {% endif %}
+        {% endif %}
+    {% empty %}
+        <li>Нет публикаций.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
