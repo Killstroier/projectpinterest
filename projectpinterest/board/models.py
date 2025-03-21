@@ -19,7 +19,7 @@ class Photo(models.Model):
     image = models.ImageField(
         upload_to='photos/',
         verbose_name="Изображение",
-        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpeg'])]
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg'])]
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Время обновления")
