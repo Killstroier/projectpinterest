@@ -1,30 +1,30 @@
 from django.db import models
 from django.urls import reverse
+from django.core.validators import FileExtensionValidator
 from django.contrib.auth.models import User
 
-# Пользовательский менеджер для выбора только опубликованных записей
 class PublishedManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_published=Photo.Status.PUBLISHED)
 
 class Photo(models.Model):
-    # Перечисление для статуса публикации
     class Status(models.IntegerChoices):
         DRAFT = 0, 'Черновик'
         PUBLISHED = 1, 'Опубликовано'
 
     title = models.CharField(max_length=255, verbose_name="Заголовок")
-    # Поле slug для формирования красивых URL; для первоначальной миграции разрешаем пустоту,
-    # чтобы затем заполнить слаг и обновить модель (после заполнения можно убрать blank и default)
     slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL", blank=True, default='')
     description = models.TextField(blank=True, verbose_name="Описание")
-    image = models.ImageField(upload_to='photos/', verbose_name="Изображение")
+    # Добавляем валидатор, который разрешает только файлы с расширениями png и jpeg.
+    image = models.ImageField(
+        upload_to='photos/',
+        verbose_name="Изображение",
+        validators=[FileExtensionValidator(allowed_extensions=['png', 'jpeg'])]
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Время обновления")
-    # Используем choices для поля публикации с перечислением
     is_published = models.BooleanField(choices=Status.choices, default=Status.DRAFT, verbose_name="Публикация")
 
-    # Явно задаём стандартный менеджер и наш пользовательский
     objects = models.Manager()
     published = PublishedManager()
 
