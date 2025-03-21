@@ -1,0 +1,10 @@
+{% extends 'board/base.html' %}
+{% block title %}Удалить пост{% endblock %}
+{% block content %}
+<h1>Удалить пост: "{{ photo.title }}"?</h1>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Удалить</button>
+    <a href="{{ photo.get_absolute_url }}" class="btn btn-secondary">Назад</a>
+</form>
+{% endblock %}

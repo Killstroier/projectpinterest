@@ -7,4 +7,8 @@
 {% endif %}
 <p>{{ post.description|linebreaks }}</p>
 <p class="text-muted">Опубликовано: {{ post.is_published|yesno:"Опубликовано,Черновик" }}</p>
+
+<hr>
+<a href="{% url 'photo_edit' post.slug %}" class="btn btn-warning">Редактировать</a>
+<a href="{% url 'photo_delete' post.slug %}" class="btn btn-danger">Удалить</a>
 {% endblock %}

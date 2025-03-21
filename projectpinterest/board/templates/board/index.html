@@ -2,6 +2,14 @@
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
 <h1>{{ title }}</h1>
+
+<!-- Фильтр постов -->
+<div class="btn-group mb-3">
+    <a href="?filter=all" class="btn btn-secondary">Все</a>
+    <a href="?filter=published" class="btn btn-secondary">Опубликованные</a>
+    <a href="?filter=draft" class="btn btn-secondary">Черновики</a>
+</div>
+
 <ul class="list-group">
     {% for post in posts %}
         <li class="list-group-item">
