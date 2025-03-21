@@ -19,8 +19,8 @@ posts = [
 def index(request):
     data = {
         'title': 'Главная страница',
-        'menu': menu,
-        'posts': posts,
+        'menu': menu,  # Передаём данные меню
+        'posts': posts, # Передаём все посты
     }
     return render(request, 'board/index.html', data)
 
