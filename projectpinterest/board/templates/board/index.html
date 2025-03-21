@@ -1,20 +1,17 @@
 {% extends 'board/base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<h1>{{ title|capfirst }}</h1>
-<ul>
+<h1>{{ title }}</h1>
+<ul class="list-group">
     {% for post in posts %}
-        {% if post.is_published %}
-            <li>
-                <h2>{{ post.title }}</h2>
-                <p>{% autoescape off %}{{ post.content|linebreaks|truncatewords:50 }}{% endautoescape %}</p>
-            </li>
-            {% if not forloop.last %}
-                <hr>
-            {% endif %}
-        {% endif %}
+        <li class="list-group-item">
+            <h2>{{ post.title }}</h2>
+            <p>{{ post.description|truncatewords:30 }}</p>
+            <a href="{{ post.get_absolute_url }}" class="btn btn-link">Читать пост</a>
+        </li>
     {% empty %}
-        <li>Нет публикаций.</li>
+        <li class="list-group-item">Нет записей.</li>
     {% endfor %}
 </ul>
+<a href="{% url 'photo_create' %}" class="btn btn-primary mt-3">Добавить новый пост</a>
 {% endblock %}

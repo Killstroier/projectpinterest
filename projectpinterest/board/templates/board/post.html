@@ -1,0 +1,10 @@
+{% extends 'board/base.html' %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+<h1>{{ post.title }}</h1>
+{% if post.image %}
+    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="img-fluid mb-3">
+{% endif %}
+<p>{{ post.description|linebreaks }}</p>
+<p class="text-muted">Опубликовано: {{ post.is_published|yesno:"Опубликовано,Черновик" }}</p>
+{% endblock %}
