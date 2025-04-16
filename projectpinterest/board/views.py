@@ -20,6 +20,12 @@ def index(request):
     }
     return render(request, 'board/index.html', data)
 
+def about(request):
+    data = {
+        'title':'О сайте',
+    }
+    return render(request, 'board/about.html', data)
+
 # Страница для показа одного поста
 def show_post(request, post_slug):
     post = get_object_or_404(Photo, slug=post_slug)
