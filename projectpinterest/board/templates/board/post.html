@@ -1,16 +1,93 @@
 {% extends 'board/base.html' %}
-{% block title %}{{ post.title }}{% endblock %}
-{% block content %}
-<h1>{{ post.title }}</h1>
-<p>{{ post.description }}</p>
-<p>Категория: {{ post.category.name }}</p>
-<p>Теги: 
-    {% for tag in post.tags.all %}
-        <span>{{ tag.tag }}</span>
-    {% endfor %}
-</p>
+{% load static %}
 
-<!-- Кнопки редактирования и удаления -->
-<a href="{% url 'photo_edit' post.slug %}" class="btn btn-warning">Редактировать</a>
-<a href="{% url 'photo_delete' post.slug %}" class="btn btn-danger">Удалить</a>
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center animate-fade-in">
+  <div class="col-lg-8">
+    <div class="card card-custom p-0 overflow-hidden">
+      {% if post.image %}
+        <div class="text-center post-image-container">
+          <img src="{{ post.image.url }}" class="img-fluid post-image" alt="{{ post.title }}">
+        </div>
+      {% endif %}
+      
+      <div class="card-body p-4">
+        <h1 class="card-title display-6 mb-3">{{ post.title }}</h1>
+        
+        <div class="post-meta mb-4">
+          <span class="badge bg-dark me-2"><i class="fas fa-folder me-1"></i> {{ post.category.name }}</span>
+          {% if post.is_published == 'draft' %}
+            <span class="badge bg-warning text-dark"><i class="fas fa-pencil-alt me-1"></i> Черновик</span>
+          {% else %}
+            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Опубликовано</span>
+          {% endif %}
+        </div>
+        
+        <div class="post-content mb-4">
+          <p class="lead">{{ post.description }}</p>
+        </div>
+        
+        <div class="post-tags mb-4">
+          <h5><i class="fas fa-tags me-2"></i>Теги:</h5>
+          <div class="tags-container">
+            {% for tag in post.tags.all %}
+              <span class="badge bg-secondary me-2 mb-2">{{ tag.tag }}</span>
+            {% empty %}
+              <p class="text-muted fst-italic">Нет тегов</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-footer bg-light p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="btn-group">
+            <a href="{% url 'photo_edit' post.slug %}" class="btn btn-warning">
+              <i class="fas fa-edit me-1"></i> Редактировать
+            </a>
+            <a href="{% url 'photo_delete' post.slug %}" class="btn btn-danger">
+              <i class="fas fa-trash-alt me-1"></i> Удалить
+            </a>
+          </div>
+          <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Назад
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .post-image-container {
+    max-height: 500px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+  }
+  
+  .post-image {
+    width: 100%;
+    object-fit: contain;
+    max-height: 500px;
+  }
+  
+  .post-meta {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .post-content {
+    padding: 15px 0;
+  }
+  
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+</style>
 {% endblock %}

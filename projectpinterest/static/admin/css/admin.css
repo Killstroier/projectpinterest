@@ -1,0 +1,313 @@
+/* Custom Admin Styles for Porfafor */
+:root {
+    --primary-color: #000;
+    --secondary-color: #333;
+    --accent-color: #e60023;  /* Pinterest red */
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --light-text: #fff;
+    --border-radius: 8px;
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Global styles */
+body {
+    font-family: 'Montserrat', sans-serif;
+}
+
+body, #container {
+    background-color: var(--bg-color);
+}
+
+a:link, a:visited {
+    color: var(--primary-color);
+}
+
+a:hover {
+    color: var(--accent-color);
+}
+
+/* Header */
+#header {
+    background: var(--primary-color);
+    color: var(--light-text);
+    padding: 15px 20px;
+}
+
+#header a:link, #header a:visited {
+    color: var(--light-text);
+}
+
+#branding h1 {
+    color: var(--light-text);
+    font-weight: 600;
+}
+
+#branding h1 a {
+    display: flex;
+    align-items: center;
+}
+
+#branding h1 a::before {
+    content: "\f030";
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+/* User Tools */
+.usertools-custom {
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.usertools-custom span {
+    margin-right: 15px;
+}
+
+.usertools-custom a {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 6px 12px;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.usertools-custom a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.usertools-custom a i {
+    margin-right: 6px;
+}
+
+.module h2, .module caption, .inline-group h2 {
+    background: var(--primary-color);
+    padding: 10px;
+    font-weight: 500;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background: var(--primary-color);
+    color: var(--light-text);
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover,
+.submit-row input:hover, a.button:hover {
+    background: var(--secondary-color);
+}
+
+.button.default, input[type=submit].default, .submit-row input.default {
+    background: var(--accent-color);
+}
+
+.button.default:hover, input[type=submit].default:hover, .submit-row input.default:hover {
+    background: #d1001f;
+}
+
+/* Sidebar/Nav */
+#nav-sidebar {
+    background-color: var(--light-text);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    margin-top: 20px;
+    margin-left: 20px;
+}
+
+#nav-sidebar .current-app .section:link, 
+#nav-sidebar .current-app .section:visited {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.object-tools a.addlink {
+    background-color: var(--accent-color);
+    border-radius: var(--border-radius);
+}
+
+.object-tools a:link, .object-tools a:visited {
+    background-color: var(--primary-color);
+    border-radius: var(--border-radius);
+}
+
+.object-tools a:hover {
+    background-color: var(--secondary-color);
+}
+
+.object-tools a.addlink:hover {
+    background-color: #d1001f;
+}
+
+/* Content */
+#content {
+    padding: 20px 30px;
+}
+
+div.breadcrumbs {
+    background: var(--secondary-color);
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+}
+
+/* Modules */
+.module {
+    background: var(--light-text);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.dashboard .module table th {
+    width: 100%;
+}
+
+/* Form Elements */
+.form-row {
+    border-bottom: 1px solid #eee;
+    padding: 15px 10px;
+}
+
+.aligned label {
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+.submit-row {
+    background: #f8f8f8;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+textarea, input[type=text], input[type=password], input[type=email], 
+input[type=number], input[type=url], input[type=tel], select, .vTextField {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+
+select {
+    height: 38px;
+}
+
+/* Tables */
+#changelist table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+}
+
+#changelist table thead th {
+    background: var(--primary-color);
+    color: var(--light-text);
+    padding: 12px 8px;
+}
+
+#changelist table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+#changelist table tbody tr:hover {
+    background-color: #f0f0f0;
+}
+
+#changelist-filter {
+    background: var(--light-text);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+}
+
+#changelist-filter h2 {
+    background: var(--primary-color);
+    color: var(--light-text);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    padding: 12px 15px;
+}
+
+#changelist-filter li.selected {
+    border-left: 5px solid var(--accent-color);
+}
+
+/* Messages */
+.messagelist {
+    margin-top: 20px;
+}
+
+.messagelist li {
+    border-radius: var(--border-radius);
+    padding: 12px 15px;
+}
+
+.messagelist li.success {
+    background: #dff0d8;
+    color: #3c763d;
+}
+
+.messagelist li.error {
+    background: #f2dede;
+    color: #a94442;
+}
+
+.messagelist li.warning {
+    background: #fcf8e3;
+    color: #8a6d3b;
+}
+
+/* Footer */
+#footer {
+    background: var(--primary-color);
+    color: var(--light-text);
+    padding: 15px 20px;
+    text-align: center;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    margin-top: 30px;
+}
+
+/* Login */
+.login {
+    background: var(--bg-color);
+}
+
+.login #container {
+    box-shadow: var(--card-shadow);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.login #header {
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.login #content {
+    background: var(--light-text);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    #nav-sidebar {
+        margin-left: 10px;
+        margin-right: 10px;
+    }
+    
+    #content {
+        padding: 15px;
+    }
+    
+    .usertools-custom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .usertools-custom span {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}

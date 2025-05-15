@@ -1,0 +1,264 @@
+/* Base Template Styles */
+:root {
+    --primary-color: #000;
+    --secondary-color: #333;
+    --accent-color: #e60023;  /* Pinterest red */
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --light-text: #fff;
+    --border-radius: 15px;
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --transition-speed: 0.3s;
+}
+
+body {
+    margin: 0;
+    font-family: 'Montserrat', 'Rockwell', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Styles */
+header {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+    padding: 15px 0;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    z-index: 1000;
+}
+
+/* Navigation */
+.nav-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--light-text);
+    text-decoration: none;
+    transition: opacity var(--transition-speed) ease;
+}
+
+.logo:hover {
+    opacity: 0.85;
+    color: var(--light-text);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+}
+
+.nav-links li {
+    margin-left: 20px;
+}
+
+.nav-links a {
+    color: var(--light-text);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: color var(--transition-speed) ease;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.nav-links a:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile Navigation Toggle */
+.nav-toggle {
+    display: none;
+}
+
+.nav-toggle-label {
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: var(--light-text);
+}
+
+/* Main Content */
+main {
+    flex: 1;
+    padding: 20px 0;
+}
+
+/* Footer */
+footer {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+    padding: 20px 0;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    margin-top: auto;
+}
+
+.social-links a {
+    color: var(--light-text);
+    font-size: 1.2rem;
+    transition: opacity var(--transition-speed) ease;
+}
+
+.social-links a:hover {
+    opacity: 0.8;
+}
+
+/* Buttons */
+.btn-custom {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed) ease, 
+                transform var(--transition-speed) ease;
+    font-weight: 500;
+}
+
+.btn-custom:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+}
+
+.btn-custom-primary {
+    background-color: var(--accent-color);
+}
+
+.btn-custom-primary:hover {
+    background-color: #d1001f;
+}
+
+/* Card Elements */
+.card-custom {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: transform var(--transition-speed) ease, 
+                box-shadow var(--transition-speed) ease;
+    box-shadow: var(--card-shadow);
+    border: none;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-custom .card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.card-custom .card-title {
+    font-weight: 600;
+}
+
+.card-custom .card-footer {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Filter buttons */
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+/* Form styling */
+form label {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+form input, form textarea, form select {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+form button {
+    margin-top: 10px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .nav-toggle {
+        display: block;
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .nav-toggle-label {
+        display: block;
+        z-index: 100;
+    }
+    
+    .nav-links {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: var(--primary-color);
+        width: 80%;
+        max-width: 300px;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        border-radius: 0 0 0 var(--border-radius);
+        transform: translateX(100%);
+        transition: transform var(--transition-speed) ease;
+        z-index: 99;
+        box-shadow: -5px 5px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .nav-links li {
+        margin: 10px 0;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .nav-links a {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    .nav-toggle:checked ~ .nav-links {
+        transform: translateX(0);
+    }
+    
+    .filter-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-buttons .btn {
+        margin-right: 0 !important;
+        margin-bottom: 10px;
+    }
+}
+
+/* Animation effects */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+} 

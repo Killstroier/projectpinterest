@@ -1,10 +1,136 @@
 {% extends 'board/base.html' %}
+{% load static %}
+
 {% block title %}Добавить пост{% endblock %}
+
 {% block content %}
-<h1>Добавить пост</h1>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Создать</button>
-</form>
+<div class="row justify-content-center animate-fade-in">
+  <div class="col-lg-8">
+    <div class="card card-custom p-4">
+      <div class="text-center mb-4">
+        <i class="fas fa-plus-circle fa-3x mb-3" style="color: var(--accent-color);"></i>
+        <h1 class="display-6">Создать новый пост</h1>
+        <div class="w-25 mx-auto border-bottom my-3"></div>
+      </div>
+      
+      <form method="post" enctype="multipart/form-data" class="create-form">
+        {% csrf_token %}
+        
+        <div class="form-preview mb-4 text-center d-none" id="imagePreviewContainer">
+          <img id="imagePreview" src="#" alt="Предпросмотр" class="img-fluid img-thumbnail" style="max-height: 300px;">
+          <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="removePreview">
+            <i class="fas fa-times"></i> Удалить
+          </button>
+        </div>
+        
+        <div class="row">
+          {% for field in form %}
+            <div class="col-12 mb-3 form-group">
+              <label for="{{ field.id_for_label }}" class="form-label">
+                {{ field.label }}
+                {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              
+              {% if field.name == 'image' %}
+                <div class="custom-file-input">
+                  {{ field }}
+                  <label for="{{ field.id_for_label }}" class="file-label">
+                    <i class="fas fa-cloud-upload-alt me-2"></i> Выберите изображение
+                  </label>
+                </div>
+              {% else %}
+                {{ field }}
+              {% endif %}
+              
+              {% if field.help_text %}
+                <small class="form-text text-muted">{{ field.help_text }}</small>
+              {% endif %}
+              
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">
+                  {% for error in field.errors %}
+                    {{ error }}
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+        
+        <div class="text-center mt-4">
+          <button type="submit" class="btn btn-custom btn-custom-primary">
+            <i class="fas fa-save me-2"></i> Создать пост
+          </button>
+          <a href="{% url 'home' %}" class="btn btn-outline-secondary ms-2">
+            <i class="fas fa-times me-2"></i> Отмена
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .create-form label {
+    font-weight: 500;
+  }
+  
+  .custom-file-input input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+  
+  .file-label {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .file-label:hover {
+    background-color: var(--secondary-color);
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.querySelector('input[type="file"]');
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeButton = document.getElementById('removePreview');
+    
+    imageInput.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          imagePreview.src = e.target.result;
+          previewContainer.classList.remove('d-none');
+        }
+        
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+    
+    removeButton.addEventListener('click', function() {
+      imageInput.value = '';
+      previewContainer.classList.add('d-none');
+    });
+  });
+</script>
 {% endblock %}

@@ -1,25 +1,48 @@
 {% extends 'board/base.html' %}
-{% block title %}{{ title }}{% endblock %}
+{% block title %}Главная{% endblock %}
+
 {% block content %}
-<h1>{{ title }}</h1>
-
-<!-- Фильтр постов -->
-<div class="btn-group mb-3">
-    <a href="?filter=all" class="btn btn-secondary">Все</a>
-    <a href="?filter=published" class="btn btn-secondary">Опубликованные</a>
-    <a href="?filter=draft" class="btn btn-secondary">Черновики</a>
-</div>
-
-<ul class="list-group">
+  <h1 class="mb-4">Все посты</h1>
+  
+  <!-- Добавляем кнопки фильтрации -->
+  <div class="filter-buttons mb-4">
+    <a href="{% url 'home' %}?filter=published" class="btn {% if request.GET.filter == 'published' or not request.GET.filter %}btn-primary{% else %}btn-outline-primary{% endif %} me-2">
+      <i class="fas fa-check-circle"></i> Опубликованные
+    </a>
+    <a href="{% url 'home' %}?filter=draft" class="btn {% if request.GET.filter == 'draft' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2">
+      <i class="fas fa-pencil-alt"></i> Черновики
+    </a>
+    <a href="{% url 'home' %}?filter=all" class="btn {% if request.GET.filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+      <i class="fas fa-list"></i> Все посты
+    </a>
+  </div>
+  
+  <div class="row">
     {% for post in posts %}
-        <li class="list-group-item">
-            <h2>{{ post.title }}</h2>
-            <p>{{ post.description|truncatewords:30 }}</p>
-            <a href="{{ post.get_absolute_url }}" class="btn btn-link">Читать пост</a>
-        </li>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          {% if post.image %}
+            <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ post.title }}</h5>
+            <p class="card-text">{{ post.description|truncatewords:20 }}</p>
+            <a href="{{ post.get_absolute_url }}" class="btn btn-primary">Подробнее</a>
+            {% if post.is_published == 'draft' %}
+              <span class="badge bg-warning text-dark ms-2">Черновик</span>
+            {% endif %}
+          </div>
+          <div class="card-footer">
+            <small class="text-muted">Категория: {{ post.category.name }}</small>
+          </div>
+        </div>
+      </div>
     {% empty %}
-        <li class="list-group-item">Нет записей.</li>
+      <div class="col-12">
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle"></i> Постов пока нет.
+        </div>
+      </div>
     {% endfor %}
-</ul>
-<a href="{% url 'photo_create' %}" class="btn btn-primary mt-3">Добавить новый пост</a>
+  </div>
 {% endblock %}

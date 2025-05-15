@@ -1,0 +1,54 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}
+  {% if subtitle %}{{ subtitle }} | {% endif %}
+  {{ title }} | Porfafor администрирование
+{% endblock %}
+
+{% block extrahead %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  {{ block.super }}
+{% endblock %}
+
+{% block extrastyle %}
+  <link rel="stylesheet" href="{% static 'admin/css/admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+  <div id="site-name">
+    <a href="{% url 'admin:index' %}">
+      Панель администратора Porfafor
+    </a>
+  </div>
+  {% if user.is_anonymous %}
+    {% include "admin/color_theme_toggle.html" %}
+  {% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block usertools %}
+  <div id="user-tools" class="usertools-custom">
+    {% if user.is_active and user.is_staff %}
+      <span>Добро пожаловать, <strong>{{ user.get_username }}</strong>.</span>
+      {% if user.is_superuser %}
+        <a href="{% url 'admin:index' %}"><i class="fas fa-tachometer-alt"></i> Панель</a>
+      {% endif %}
+      <a href="{% url 'home' %}"><i class="fas fa-home"></i> На сайт</a>
+      <a href="{% url 'admin:password_change' %}"><i class="fas fa-key"></i> Пароль</a>
+      <a href="{% url 'admin:logout' %}"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block footer %}
+  <div id="footer">
+    <div class="footer-content">
+      <p>&copy; 2025 Porfafor. Все права защищены.</p>
+    </div>
+  </div>
+{% endblock %}

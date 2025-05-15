@@ -1,0 +1,50 @@
+/* General styles */
+body {
+    margin: 0;
+    font-family: 'Rockwell', serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* Header styles */
+header {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Rockwell', serif;
+    padding: 20px;
+    text-align: center;
+    border-radius: 0 0 15px 15px;
+}
+
+/* Footer styles */
+footer {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Rockwell', serif;
+    padding: 10px;
+    text-align: center;
+    border-radius: 15px 15px 0 0;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+/* Example content styles */
+main {
+    padding: 20px;
+    text-align: center;
+}
+
+button {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Rockwell', serif;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #333;
+}

@@ -1,6 +1,67 @@
 {% extends 'board/base.html' %}
+{% load static %}
+
 {% block title %}О сайте{% endblock %}
+
 {% block content %}
-<h1>О сайте</h1>
-<p>Это проект типа Pinterest, где каждый может размещать и сохранять понравившиеся фотографии.</p>
+<div class="row justify-content-center animate-fade-in">
+    <div class="col-lg-8">
+        <div class="card card-custom p-4 mb-4">
+            <div class="text-center mb-4">
+                <i class="fas fa-camera-retro fa-4x mb-3" style="color: var(--accent-color);"></i>
+                <h1 class="display-5 fw-bold">О нашем сайте</h1>
+                <div class="w-50 mx-auto border-bottom my-4"></div>
+            </div>
+            
+            <p class="lead text-center mb-4">Porfafor - это проект типа Pinterest, где каждый может размещать и сохранять понравившиеся фотографии.</p>
+            
+            <div class="row mt-5">
+                <div class="col-md-4 text-center mb-4">
+                    <div class="feature-box">
+                        <i class="fas fa-upload fa-2x mb-3"></i>
+                        <h4>Делитесь</h4>
+                        <p>Загружайте свои любимые фотографии и делитесь ими с миром</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center mb-4">
+                    <div class="feature-box">
+                        <i class="fas fa-search fa-2x mb-3"></i>
+                        <h4>Исследуйте</h4>
+                        <p>Находите вдохновение в работах других пользователей</p>
+                    </div>
+                </div>
+                <div class="col-md-4 text-center mb-4">
+                    <div class="feature-box">
+                        <i class="fas fa-bookmark fa-2x mb-3"></i>
+                        <h4>Сохраняйте</h4>
+                        <p>Сохраняйте понравившиеся фотографии для будущего вдохновения</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'photo_create' %}" class="btn btn-custom btn-custom-primary">Начать делиться</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feature-box {
+        padding: 20px;
+        border-radius: var(--border-radius);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .feature-box:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .feature-box i {
+        color: var(--accent-color);
+    }
+</style>
 {% endblock %}
