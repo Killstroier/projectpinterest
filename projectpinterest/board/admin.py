@@ -1,7 +1,6 @@
 # board/admin.py
 from django.contrib import admin, messages
 from .models import Photo, Category, TagPost, PhotoStats
-from .forms import PhotoForm
 from django.utils.html import format_html
 
 
