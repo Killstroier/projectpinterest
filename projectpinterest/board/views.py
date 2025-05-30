@@ -1,234 +1,217 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, FormView
+from django.urls import reverse_lazy
 from django.db.models import Q
 from .forms import PhotoAddForm, PhotoForm, UploadFileForm
 from .models import Photo, Category, TagPost
 import uuid, os
 from datetime import datetime
+from .utils import DataMixin
 
 
-# Главная страница с фильтром по статусу
-def index(request):
-    """
-    Главная страница с фильтрацией постов по статусу (опубликованные, черновики, все)
-    """
-    filter_status = request.GET.get('filter')
-    
-    # Базовый QuerySet с оптимизацией запросов
-    base_queryset = Photo.objects.select_related('category', 'stats').prefetch_related('tags')
-    
-    # Применяем фильтрацию в зависимости от параметра
-    if filter_status == 'draft':
-        posts = base_queryset.filter(is_published=Photo.Status.DRAFT)
-        title = 'Черновики'
-    elif filter_status == 'published':
-        posts = base_queryset.filter(is_published=Photo.Status.PUBLISHED)
-        title = 'Опубликованные'
-    elif filter_status == 'all':
-        posts = base_queryset.all()
-        title = 'Все посты'
-    else:
-        # По умолчанию показываем только опубликованные
-        posts = base_queryset.filter(is_published=Photo.Status.PUBLISHED)
-        title = 'Опубликованные'
+class IndexView(DataMixin, ListView):
+    model = Photo
+    template_name = 'board/index.html'
+    context_object_name = 'posts'
+    paginate_by = 6  # пагинация
 
-    data = {
-        'title': title,
-        'posts': posts,
-        'filter_status': filter_status or 'published',
-    }
-    return render(request, 'board/index.html', data)
+    def get_queryset(self):
+        filter_status = self.request.GET.get('filter')
+        base_queryset = Photo.objects.select_related('category', 'stats').prefetch_related('tags')
+
+        if filter_status == 'draft':
+            return base_queryset.filter(is_published=Photo.Status.DRAFT)
+        elif filter_status == 'published':
+            return base_queryset.filter(is_published=Photo.Status.PUBLISHED)
+        elif filter_status == 'all':
+            return base_queryset.all()
+        else:
+            return base_queryset.filter(is_published=Photo.Status.PUBLISHED)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        filter_status = self.request.GET.get('filter')
+
+        if filter_status == 'draft':
+            title = 'Черновики'
+        elif filter_status == 'published':
+            title = 'Опубликованные'
+        elif filter_status == 'all':
+            title = 'Все посты'
+        else:
+            title = 'Опубликованные'
+
+        # Добавляем логику пагинации в контекст
+        paginator = context.get('paginator')
+        page_obj = context.get('page_obj')
+        current_page = page_obj.number if page_obj else 1
+        page_range = paginator.page_range if paginator else []
+
+        if len(page_range) > 7:
+            if current_page <= 4:
+                page_range = list(range(1, 8))
+            elif current_page >= len(page_range) - 3:
+                page_range = list(range(len(page_range) - 6, len(page_range) + 1))
+            else:
+                page_range = list(range(current_page - 3, current_page + 4))
+
+        return self.get_mixin_context(context, title=title, filter_status=filter_status or 'published',
+                                      page_range=page_range, current_page=current_page)
 
 
-def about(request):
+class AboutView(TemplateView):
     """Страница "О нас"."""
-    data = {
-        'title': 'О сайте',
-    }
-    return render(request, 'board/about.html', data)
+    template_name = 'board/about.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'О сайте'
+        return context
 
 
-# Страница для показа одного поста
-def show_post(request, post_slug):
-    """
-    Детальный просмотр поста с увеличением счетчика просмотров.
-    """
-    # Оптимизируем запрос с select_related и prefetch_related
-    post = get_object_or_404(
-        Photo.objects.select_related('category', 'stats').prefetch_related('tags'),
-        slug=post_slug
-    )
-    
-    # Увеличиваем счетчик просмотров
-    post.increment_views()
-    
-    return render(request, 'board/post.html', {'post': post})
+class PostDetailView(DataMixin, DetailView):
+    model = Photo
+    template_name = 'board/post.html'
+    context_object_name = 'post'
+    slug_url_kwarg = 'post_slug'
+
+    def get_queryset(self):
+        return Photo.objects.select_related('category', 'stats').prefetch_related('tags')
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        obj.increment_views()
+        return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return self.get_mixin_context(context, title=context.get('post').title)
 
 
-# Редактирование поста
-def photo_edit(request, post_slug):
+
+class PhotoUpdateView(UpdateView):
     """
     Редактирование существующего поста.
     """
-    photo = get_object_or_404(Photo, slug=post_slug)
-    
-    if request.method == 'POST':
-        form = PhotoForm(request.POST, request.FILES, instance=photo)
-        if form.is_valid():
-            edited_photo = form.save()
-            messages.success(request, f'Пост "{edited_photo.title}" успешно обновлен.')
-            return redirect(edited_photo.get_absolute_url())
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-    else:
-        form = PhotoForm(instance=photo)
-    
-    return render(request, 'board/photo_edit.html', {
-        'form': form, 
-        'photo': photo,
-        'title': f'Редактирование: {photo.title}'
-    })
+    model = Photo
+    form_class = PhotoForm
+    template_name = 'board/photo_edit.html'
+    slug_url_kwarg = 'post_slug'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f'Редактирование: {self.object.title}'
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Пост "{self.object.title}" успешно обновлен.')
+        return response
 
 
-# Удаление поста
-def photo_delete(request, post_slug):
+class PhotoDeleteView(DeleteView):
     """
     Удаление поста с подтверждением.
     """
-    photo = get_object_or_404(Photo, slug=post_slug)
-    
-    if request.method == 'POST':
-        title = photo.title
-        photo.delete()
-        messages.success(request, f'Пост "{title}" успешно удален.')
-        return redirect('home')
-    
-    return render(request, 'board/photo_delete_confirm.html', {
-        'photo': photo,
-        'title': f'Удаление: {photo.title}'
-    })
+    model = Photo
+    template_name = 'board/photo_delete_confirm.html'
+    slug_url_kwarg = 'post_slug'
+    success_url = reverse_lazy('home')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f'Удаление: {self.object.title}'
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        response = super().delete(request, *args, **kwargs)
+        messages.success(request, f'Пост "{self.object.title}" успешно удален.')
+        return response
 
 
-# Создание нового поста
-def photo_create(request):
-    """
-    Создание нового поста с использованием ModelForm.
-    """
-    if request.method == 'POST':
-        form = PhotoForm(request.POST, request.FILES)
-        if form.is_valid():
-            new_photo = form.save()
-            messages.success(request, f'Пост "{new_photo.title}" успешно создан.')
-            return redirect(new_photo.get_absolute_url())
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-    else:
-        form = PhotoForm()
-    
-    return render(request, 'board/photo_create.html', {
-        'form': form,
-        'title': 'Создание нового поста'
-    })
+class PhotoCreateView(DataMixin, CreateView):
+    model = Photo
+    form_class = PhotoForm
+    template_name = 'board/photo_create.html'
+    success_url = reverse_lazy('home')
+    title_page = 'Создание нового поста'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return self.get_mixin_context(context)
 
 
-def photo_create_manual(request):
+
+class PhotoCreateManualView(CreateView):
     """
     Альтернативный метод создания поста с использованием Form (не ModelForm).
     """
-    if request.method == 'POST':
-        form = PhotoAddForm(request.POST, request.FILES)
-        if form.is_valid():
-            # Создаем новый пост с данными из формы
-            photo = Photo.objects.create(
-                title = form.cleaned_data['title'],
-                slug  = form.cleaned_data['slug'],
-                image = form.cleaned_data.get('image'),
-                description = form.cleaned_data['description'],
-                is_published = form.cleaned_data['is_published'],
-                category = form.cleaned_data['category'],
-            )
-            # Добавляем теги к посту
-            photo.tags.set(form.cleaned_data['tags'])
-            
-            messages.success(request, f'Пост "{photo.title}" успешно создан.')
-            return redirect('home')
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-    else:
-        form = PhotoAddForm()
-    
-    return render(request, 'board/photo_create.html', {
-        'form': form,
-        'title': 'Создание нового поста (ручной метод)'
-    })
+    model = Photo
+    form_class = PhotoAddForm
+    template_name = 'board/photo_create.html'
+    success_url = reverse_lazy('home')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Создание нового поста (ручной метод)'
+        return context
+
+    def form_valid(self, form):
+        photo = Photo.objects.create(
+            title=form.cleaned_data['title'],
+            slug=form.cleaned_data['slug'],
+            image=form.cleaned_data.get('image'),
+            description=form.cleaned_data['description'],
+            is_published=form.cleaned_data['is_published'],
+            category=form.cleaned_data['category'],
+        )
+        photo.tags.set(form.cleaned_data['tags'])
+        messages.success(self.request, f'Пост "{photo.title}" успешно создан.')
+        return redirect(self.success_url)
 
 
-def photo_create_modelform(request):
-    """
-    Создание нового поста с использованием ModelForm (альтернативная версия).
-    """
-    if request.method == 'POST':
-        form = PhotoForm(request.POST, request.FILES)
-        if form.is_valid():
-            photo = form.save()
-            messages.success(request, f'Пост "{photo.title}" успешно создан.')
-            return redirect('home')
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-    else:
-        form = PhotoForm()
-    
-    return render(request, 'board/photo_create_modelform.html', {
-        'form': form,
-        'title': 'Создание нового поста (ModelForm)'
-    })
-
-
-def upload_file(request):
+class UploadFileView(FormView):
     """
     Загрузка файла без создания поста.
     """
-    if request.method == 'POST':
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            filename = handle_uploaded_file(form.cleaned_data['file'])
-            messages.success(request, f'Файл "{filename}" успешно загружен.')
-            return redirect('home')
-        else:
-            messages.error(request, 'Пожалуйста, выберите корректный файл.')
-    else:
-        form = UploadFileForm()
-    
-    context = {
-        'title': 'Загрузка файла',
-        'form': form,
-    }
-    return render(request, 'board/upload_file.html', context)
+    form_class = UploadFileForm
+    template_name = 'board/upload_file.html'
+    success_url = reverse_lazy('home')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Загрузка файла'
+        return context
 
-def handle_uploaded_file(f):
-    """
-    Обработка загруженного файла.
-    Создает уникальное имя файла и сохраняет его в папке uploads.
-    """
-    name = f.name
-    ext = ''
-    if '.' in name:
-        ext = name[name.rindex('.'):]
-        name = name[:name.rindex('.')]
-    
-    # Создаем папку uploads, если ее нет
-    upload_dir = 'media/uploads'
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    # Генерируем уникальное имя файла
-    suffix = str(uuid.uuid4())
-    filename = f"{name}_{suffix}{ext}"
-    filepath = f"{upload_dir}/{filename}"
-    
-    # Сохраняем файл
-    with open(filepath, "wb+") as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
-    
-    return filename
+    def form_valid(self, form):
+        filename = self.handle_uploaded_file(form.cleaned_data['file'])
+        messages.success(self.request, f'Файл "{filename}" успешно загружен.')
+        return super().form_valid(form)
+
+    def handle_uploaded_file(self, f):
+        """
+        Обработка загруженного файла.
+        Создает уникальное имя файла и сохраняет его в папке uploads.
+        """
+        name = f.name
+        ext = ''
+        if '.' in name:
+            ext = name[name.rindex('.'):]
+            name = name[:name.rindex('.')]
+        
+        # Создаем папку uploads, если ее нет
+        upload_dir = 'media/uploads'
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Генерируем уникальное имя файла
+        suffix = str(uuid.uuid4())
+        filename = f"{name}_{suffix}{ext}"
+        filepath = f"{upload_dir}/{filename}"
+        
+        # Сохраняем файл
+        with open(filepath, "wb+") as destination:
+            for chunk in f.chunks():
+                destination.write(chunk)
+        
+        return filename

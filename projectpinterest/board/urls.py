@@ -7,13 +7,12 @@ from .converters import FourDigitYearConverter
 register_converter(FourDigitYearConverter, 'yyyy')
 
 urlpatterns = [
-    path('', views.index, name='home'),
-    path('post/<slug:post_slug>/', views.show_post, name='post'),
-    path('create_manual/', views.photo_create_manual, name='create_manual'),
-    path('create_modelform/', views.photo_create_modelform, name='create_modelform'),
-    path('upload_file/', views.upload_file, name='upload_file'),
-    path('create/', views.photo_create, name='photo_create'),
-    path('about/', views.about, name='about'),
-    path('edit/<slug:post_slug>/', views.photo_edit, name='photo_edit'),
-    path('delete/<slug:post_slug>/', views.photo_delete, name='photo_delete'),
+    path('', views.IndexView.as_view(), name='home'),
+    path('post/<slug:post_slug>/', views.PostDetailView.as_view(), name='post'),
+    path('create_manual/', views.PhotoCreateManualView.as_view(), name='create_manual'),
+    path('create/', views.PhotoCreateView.as_view(), name='photo_create'),
+    path('upload_file/', views.UploadFileView.as_view(), name='upload_file'),
+    path('about/', views.AboutView.as_view(), name='about'),
+    path('edit/<slug:post_slug>/', views.PhotoUpdateView.as_view(), name='photo_edit'),
+    path('delete/<slug:post_slug>/', views.PhotoDeleteView.as_view(), name='photo_delete'),
 ]
