@@ -147,5 +147,5 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sasha2005sasha2005sasha2005@gmail.com'
-EMAIL_HOST_PASSWORD = 'gziq jkpl wkfc msyj'
+EMAIL_HOST_PASSWORD = 'g*** **** **** ***j'
 DEFAULT_FROM_EMAIL = 'sasha2005sasha2005sasha2005@gmail.com'
