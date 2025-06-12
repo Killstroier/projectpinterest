@@ -1,5 +1,6 @@
 {% extends 'board/base.html' %}
 {% load static %}
+{% load board_tags %}
 
 {% block title %}{{ post.title }}{% endblock %}
 
@@ -14,7 +15,20 @@
       {% endif %}
       
       <div class="card-body p-4">
-        <h1 class="card-title display-6 mb-3">{{ post.title }}</h1>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h1 class="card-title display-6 mb-0">{{ post.title }}</h1>
+          {% if post|can_edit_check:user %}
+          <div class="btn-group">
+            <a href="{% url 'edit_photo' post.id %}" class="btn btn-outline-primary">
+              <i class="fas fa-edit"></i> Редактировать
+            </a>
+            <a href="{% url 'delete_photo' post.id %}" class="btn btn-outline-danger" 
+               onclick="return confirm('Вы уверены, что хотите удалить этот пост?')">
+              <i class="fas fa-trash"></i> Удалить
+            </a>
+          </div>
+          {% endif %}
+        </div>
         
         <div class="post-meta mb-4">
           <span class="badge bg-dark me-2"><i class="fas fa-folder me-1"></i> {{ post.category.name }}</span>
@@ -23,6 +37,11 @@
           {% else %}
             <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Опубликовано</span>
           {% endif %}
+          <span class="text-muted ms-2">
+            <i class="fas fa-user me-1"></i> {{ post.author.username }} | 
+            <i class="fas fa-clock me-1"></i> {{ post.created_at|date:"d.m.Y H:i" }} |
+            <i class="fas fa-eye me-1"></i> {{ post.views }} просмотров
+          </span>
         </div>
         
         <div class="post-content mb-4">
@@ -39,18 +58,62 @@
             {% endfor %}
           </div>
         </div>
+
+        <!-- Лайки и дизлайки -->
+        <div class="d-flex gap-3 mb-4">
+          <button class="btn btn-outline-primary like-btn" data-photo-id="{{ post.id }}" data-url="{% url 'like_photo' post.id %}">
+            <i class="fas fa-thumbs-up"></i> <span class="likes-count">{{ post.total_likes }}</span>
+          </button>
+          <button class="btn btn-outline-danger dislike-btn" data-photo-id="{{ post.id }}" data-url="{% url 'dislike_photo' post.id %}">
+            <i class="fas fa-thumbs-down"></i> <span class="dislikes-count">{{ post.total_dislikes }}</span>
+          </button>
+        </div>
+
+        <!-- Форма комментария -->
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'add_comment' post.id %}" class="mb-4">
+          {% csrf_token %}
+          <div class="form-group">
+            <textarea name="content" class="form-control" rows="3" placeholder="Напишите комментарий..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+        </form>
+        {% endif %}
+
+        <!-- Комментарии -->
+        <h4>Комментарии</h4>
+        {% for comment in post.comments.all %}
+        <div class="card mb-2">
+          <div class="card-body">
+            <p class="card-text">{{ comment.content }}</p>
+            <p class="text-muted">
+              {{ comment.author.username }} | {{ comment.created_at|date:"d.m.Y H:i" }}
+              {% if comment|can_edit_check:user %}
+              <div class="float-end">
+                <a href="{% url 'edit_comment' comment.id %}" class="text-primary me-2">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'delete_comment' comment.id %}" class="text-danger" 
+                   onclick="return confirm('Вы уверены, что хотите удалить этот комментарий?')">
+                  <i class="fas fa-trash"></i>
+                </a>
+              </div>
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        {% empty %}
+        <p>Пока нет комментариев. Будьте первым!</p>
+        {% endfor %}
       </div>
       
       <div class="card-footer bg-light p-3">
         <div class="d-flex justify-content-between align-items-center">
-          <div class="btn-group">
-            <a href="{% url 'photo_edit' post.slug %}" class="btn btn-warning">
-              <i class="fas fa-edit me-1"></i> Редактировать
+          {% if not post.is_published and perms.board.can_publish_photo %}
+            <a href="{% url 'publish_photo' post.slug %}" class="btn btn-success">
+              <i class="fas fa-upload me-1"></i> Опубликовать фото
             </a>
-            <a href="{% url 'photo_delete' post.slug %}" class="btn btn-danger">
-              <i class="fas fa-trash-alt me-1"></i> Удалить
-            </a>
-          </div>
+          {% endif %}
           <a href="{% url 'home' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-1"></i> Назад
           </a>
@@ -90,4 +153,66 @@
     margin-top: 10px;
   }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Обработка лайков
+  document.querySelectorAll('.like-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const photoId = this.dataset.photoId;
+      const url = this.dataset.url;
+      
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        this.querySelector('.likes-count').textContent = data.total_likes;
+        document.querySelector('.dislikes-count').textContent = data.total_dislikes;
+        
+        if (data.liked) {
+          this.classList.add('btn-primary');
+          this.classList.remove('btn-outline-primary');
+        } else {
+          this.classList.add('btn-outline-primary');
+          this.classList.remove('btn-primary');
+        }
+      });
+    });
+  });
+
+  // Обработка дизлайков
+  document.querySelectorAll('.dislike-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const photoId = this.dataset.photoId;
+      const url = this.dataset.url;
+      
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        this.querySelector('.dislikes-count').textContent = data.total_dislikes;
+        document.querySelector('.likes-count').textContent = data.total_likes;
+        
+        if (data.disliked) {
+          this.classList.add('btn-danger');
+          this.classList.remove('btn-outline-danger');
+        } else {
+          this.classList.add('btn-outline-danger');
+          this.classList.remove('btn-danger');
+        }
+      });
+    });
+  });
+});
+</script>
 {% endblock %}

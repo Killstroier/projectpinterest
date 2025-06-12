@@ -1,6 +1,6 @@
 # board/admin.py
 from django.contrib import admin, messages
-from .models import Photo, Category, TagPost, PhotoStats
+from .models import Photo, Category, TagPost
 from django.utils.html import format_html
 
 
@@ -43,39 +43,18 @@ class TagPostAdmin(admin.ModelAdmin):
     list_per_page      = 20
 
 
-# PhotoStats в админке, чтобы можно было править просмотры и лайки
-@admin.register(PhotoStats)
-class PhotoStatsAdmin(admin.ModelAdmin):
-    list_display       = ('photo', 'views', 'likes')
-    list_editable     = ('views', 'likes')
-    list_select_related = ('photo',)
-    search_fields      = ('photo__title',)
-    ordering           = ('views',)
-
-
 @admin.register(Photo)
 class PhotoAdmin(admin.ModelAdmin):
     # Базовый список полей
     list_display       = (
         'id', 'title', 'category', 'is_published',
         'image_preview', 'description',
-        'created_at', 'stats_views', 'stats_likes'
+        'created_at', 'views', 'total_likes', 'total_dislikes'
     )
     list_display_links = ('id', 'title')
     list_editable      = ('is_published', 'category')
     ordering           = ('-created_at', 'title')
     list_per_page      = 10
-
-    # 7. пользовательские поля (виртуальные колонки для просмотров и лайков)
-    def stats_views(self, obj):
-        return obj.stats.views
-    stats_views.short_description = 'Просмотры'
-    stats_views.admin_order_field = 'stats__views'
-
-    def stats_likes(self, obj):
-        return obj.stats.likes
-    stats_likes.short_description = 'Лайки'
-    stats_likes.admin_order_field = 'stats__likes'
 
     # 8. пользовательские действия
     actions = ('make_published', 'make_draft')
@@ -114,7 +93,7 @@ class PhotoAdmin(admin.ModelAdmin):
     # включаем related_select, чтобы stats не делал N+1 запросов
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.select_related('stats', 'category').prefetch_related('tags')
+        return qs.select_related('category').prefetch_related('tags')
     
     def image_preview(self, obj):
         if obj.image:

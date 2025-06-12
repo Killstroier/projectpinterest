@@ -38,8 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'crispy_forms',
     'board',
-    
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -129,3 +130,22 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+
+LOGIN_REDIRECT_URL = 'users:profile'
+LOGIN_URL = 'users:login'
+LOGOUT_REDIRECT_URL = 'users:login'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'users.backends.EmailBackend',
+]
+
+CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sasha2005sasha2005sasha2005@gmail.com'
+EMAIL_HOST_PASSWORD = 'gziq jkpl wkfc msyj'
+DEFAULT_FROM_EMAIL = 'sasha2005sasha2005sasha2005@gmail.com'

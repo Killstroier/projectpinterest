@@ -1,0 +1,21 @@
+{% extends 'board/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">Редактирование комментария</h2>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="content">Комментарий</label>
+                    <textarea class="form-control" id="content" name="content" rows="3" required>{{ comment.content }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                <a href="{% url 'post' comment.photo.slug %}" class="btn btn-secondary">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

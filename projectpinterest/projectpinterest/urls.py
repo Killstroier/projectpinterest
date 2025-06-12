@@ -10,6 +10,7 @@ admin.site.index_title  = "Добро пожаловать в админку MyP
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('board.urls')),
+    path('users/', include('users.urls')),
 ]
 
 if settings.DEBUG:

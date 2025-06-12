@@ -1,13 +1,15 @@
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, FormView
 from django.urls import reverse_lazy
 from django.db.models import Q
-from .forms import PhotoAddForm, PhotoForm, UploadFileForm
-from .models import Photo, Category, TagPost
+from .forms import PhotoForm, UploadFileForm
+from .models import Photo, Category, TagPost, Comment
 import uuid, os
-from datetime import datetime
 from .utils import DataMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.contrib.auth.decorators import permission_required, login_required
+from django.http import JsonResponse, HttpResponseForbidden
 
 
 class IndexView(DataMixin, ListView):
@@ -18,7 +20,7 @@ class IndexView(DataMixin, ListView):
 
     def get_queryset(self):
         filter_status = self.request.GET.get('filter')
-        base_queryset = Photo.objects.select_related('category', 'stats').prefetch_related('tags')
+        base_queryset = Photo.objects.select_related('category').prefetch_related('tags')
 
         if filter_status == 'draft':
             return base_queryset.filter(is_published=Photo.Status.DRAFT)
@@ -77,7 +79,7 @@ class PostDetailView(DataMixin, DetailView):
     slug_url_kwarg = 'post_slug'
 
     def get_queryset(self):
-        return Photo.objects.select_related('category', 'stats').prefetch_related('tags')
+        return Photo.objects.select_related('category').prefetch_related('tags')
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
@@ -96,6 +98,7 @@ class PhotoUpdateView(UpdateView):
     """
     model = Photo
     form_class = PhotoForm
+    permission_required = 'board.can_edit'
     template_name = 'board/photo_edit.html'
     slug_url_kwarg = 'post_slug'
 
@@ -141,34 +144,9 @@ class PhotoCreateView(DataMixin, CreateView):
         context = super().get_context_data(**kwargs)
         return self.get_mixin_context(context)
 
-
-
-class PhotoCreateManualView(CreateView):
-    """
-    Альтернативный метод создания поста с использованием Form (не ModelForm).
-    """
-    model = Photo
-    form_class = PhotoAddForm
-    template_name = 'board/photo_create.html'
-    success_url = reverse_lazy('home')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Создание нового поста (ручной метод)'
-        return context
-
     def form_valid(self, form):
-        photo = Photo.objects.create(
-            title=form.cleaned_data['title'],
-            slug=form.cleaned_data['slug'],
-            image=form.cleaned_data.get('image'),
-            description=form.cleaned_data['description'],
-            is_published=form.cleaned_data['is_published'],
-            category=form.cleaned_data['category'],
-        )
-        photo.tags.set(form.cleaned_data['tags'])
-        messages.success(self.request, f'Пост "{photo.title}" успешно создан.')
-        return redirect(self.success_url)
+        form.instance.author = self.request.user
+        return super().form_valid(form)
 
 
 class UploadFileView(FormView):
@@ -215,3 +193,114 @@ class UploadFileView(FormView):
                 destination.write(chunk)
         
         return filename
+
+
+@permission_required('board.can_publish_photo', raise_exception=True)
+def publish_photo(request, post_slug):
+    photo = get_object_or_404(Photo, slug=post_slug)
+    photo.is_published = Photo.Status.PUBLISHED
+    photo.save()
+    return redirect('post', post_slug=photo.slug)
+
+
+@login_required
+def add_comment(request, photo_id):
+    if request.method == 'POST':
+        photo = get_object_or_404(Photo, id=photo_id)
+        content = request.POST.get('content')
+        if content:
+            Comment.objects.create(
+                photo=photo,
+                author=request.user,
+                content=content
+            )
+            messages.success(request, 'Комментарий успешно добавлен!')
+        return redirect('post', post_slug=photo.slug)
+    return redirect('home')
+
+@login_required
+def edit_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if not comment.can_edit(request.user):
+        return HttpResponseForbidden("У вас нет прав для редактирования этого комментария")
+    
+    if request.method == 'POST':
+        comment.content = request.POST.get('content')
+        comment.save()
+        messages.success(request, 'Комментарий успешно обновлен!')
+        return redirect('post', post_slug=comment.photo.slug)
+    
+    return render(request, 'board/edit_comment.html', {'comment': comment})
+
+@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if not comment.can_edit(request.user):
+        return HttpResponseForbidden("У вас нет прав для удаления этого комментария")
+    
+    photo_slug = comment.photo.slug
+    comment.delete()
+    messages.success(request, 'Комментарий удален!')
+    return redirect('post', post_slug=photo_slug)
+
+@login_required
+def like_photo(request, photo_id):
+    photo = get_object_or_404(Photo, id=photo_id)
+    if request.user in photo.likes.all():
+        photo.likes.remove(request.user)
+        liked = False
+    else:
+        photo.likes.add(request.user)
+        photo.dislikes.remove(request.user)
+        liked = True
+    return JsonResponse({
+        'liked': liked,
+        'total_likes': photo.total_likes(),
+        'total_dislikes': photo.total_dislikes()
+    })
+
+@login_required
+def dislike_photo(request, photo_id):
+    photo = get_object_or_404(Photo, id=photo_id)
+    if request.user in photo.dislikes.all():
+        photo.dislikes.remove(request.user)
+        disliked = False
+    else:
+        photo.dislikes.add(request.user)
+        photo.likes.remove(request.user)
+        disliked = True
+    return JsonResponse({
+        'disliked': disliked,
+        'total_likes': photo.total_likes(),
+        'total_dislikes': photo.total_dislikes()
+    })
+
+@login_required
+def edit_photo(request, photo_id):
+    photo = get_object_or_404(Photo, id=photo_id)
+    if not photo.can_edit(request.user):
+        return HttpResponseForbidden("У вас нет прав для редактирования этого поста")
+    
+    if request.method == 'POST':
+        form = PhotoForm(request.POST, request.FILES, instance=photo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Пост успешно обновлен!')
+            return redirect('post', post_slug=photo.slug)
+        else:
+            # If the form is not valid, re-render the page with errors
+            return render(request, 'board/photo_edit.html', {'photo': photo, 'form': form})
+    
+    # For GET request, create an unbound form with instance data
+    form = PhotoForm(instance=photo)
+    return render(request, 'board/photo_edit.html', {'photo': photo, 'form': form})
+
+@login_required
+def delete_photo(request, photo_id):
+    photo = get_object_or_404(Photo, id=photo_id)
+    if not photo.can_edit(request.user):
+        return HttpResponseForbidden("У вас нет прав для удаления этого поста")
+    
+    photo.delete()
+    messages.success(request, 'Пост успешно удален!')
+    return redirect('home')

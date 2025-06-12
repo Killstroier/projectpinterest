@@ -30,9 +30,21 @@
                     <ul class="nav-links">
                         <li><a href="{% url 'home' %}"><i class="fas fa-home me-1"></i> Главная</a></li>
                         <li><a href="{% url 'about' %}"><i class="fas fa-info-circle me-1"></i> О нас</a></li>
-                        <li><a href="{% url 'photo_create' %}"><i class="fas fa-plus-circle me-1"></i> Добавить фото</a></li>
-                        <li><a href="#" onclick="return false;"><i class="fas fa-user me-1"></i> Профиль</a></li>
-                        <li><a href="#" onclick="return false;"><i class="fas fa-sign-out-alt me-1"></i> Выйти</a></li>
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'photo_create' %}"><i class="fas fa-plus-circle me-1"></i> Добавить фото</a></li>
+                            <li><a href="{% url 'users:profile' %}"><i class="fas fa-user me-1"></i> Профиль</a></li>
+                            <li>
+                                <form method="post" action="{% url 'users:logout' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link nav-link p-0" style="display:inline; color:inherit; text-decoration:none;">
+                                        <i class="fas fa-sign-out-alt me-1"></i> Выйти
+                                    </button>
+                                </form>
+                            </li>
+                        {% else %}
+                            <li><a href="{% url 'users:login' %}"><i class="fas fa-sign-in-alt me-1"></i> Войти</a></li>
+                            <li><a href="{% url 'users:register' %}"><i class="fas fa-user-plus me-1"></i> Регистрация</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -41,6 +53,13 @@
 
     <main>
         <div class="container mt-4 mb-5 pb-4">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
             {% block content %}
             {% endblock %}
         </div>

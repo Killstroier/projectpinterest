@@ -1,25 +1,25 @@
+from typing import Optional, Any
+
 menu = [
     {'title': "О сайте", 'url_name': 'about'},
     {'title': "Добавить пост", 'url_name': 'photo_create'},
 ]
 
 class DataMixin:
-    title_page = None
-    extra_context = {}
+    title_page: Optional[str] = None
 
-    def __init__(self):
-        if self.title_page:
-            self.extra_context['title'] = self.title_page
-        if 'menu' not in self.extra_context:
-            self.extra_context['menu'] = menu
-
-    def get_mixin_context(self, context, **kwargs):
+    def get_mixin_context(self, context: dict, **kwargs: Any) -> dict:
         """
         Добавляет в контекст menu, title и дополнительные данные из kwargs.
         """
-        if self.title_page:
+        if 'menu' not in context:
+            context['menu'] = menu
+
+        if self.title_page and 'title' not in context:
             context['title'] = self.title_page
-        context['menu'] = menu
-        context['cat_selected'] = None
+
+        if 'cat_selected' not in context:
+            context['cat_selected'] = None
+
         context.update(kwargs)
         return context

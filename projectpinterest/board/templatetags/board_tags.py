@@ -20,3 +20,10 @@ def show_categories(cat_selected=0):
         {'id': 3, 'name': 'Искусство'},
     ]
     return {'categories': categories, 'cat_selected': cat_selected}
+
+@register.filter
+def can_edit_check(obj, user):
+    """
+    Проверяет, может ли пользователь редактировать данный объект (пост или комментарий).
+    """
+    return obj.can_edit(user)
